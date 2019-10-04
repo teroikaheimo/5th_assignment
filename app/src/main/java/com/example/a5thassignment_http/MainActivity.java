@@ -3,6 +3,7 @@ package com.example.a5thassignment_http;
 import android.os.Bundle;
 
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -40,7 +41,6 @@ RequestQueue requestQueue;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        requestQueue = new RequestQueue();
+        requestQueue = Volley.newRequestQueue(this);
     }
 }
