@@ -2,6 +2,7 @@ package com.example.a5thassignment_http;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import com.android.volley.NetworkResponse;
@@ -66,15 +67,17 @@ public class MainActivity extends AppCompatActivity {
 
     // Request HTTP
     RequestQueue requestQueue;
-    StringRequest stringRequest;
     JsonArrayRequest jsonArrayRequest;
     String url;
+
+    // Internet connection status
     ConnectivityManager connMan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         // Views
         listView = findViewById(R.id.listView);
         buttonGet = findViewById(R.id.button);
@@ -87,15 +90,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Get connection manager for internet connection status check.
+        connMan = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        // Prepare listView
         arrayList = new ArrayList<String>();
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, arrayList);
         listView.setAdapter(arrayAdapter);
-        //// Request
-        // Returns JSON data
-        url = "https://webd.savonia.fi/home/ktkoiju/j2me/test_json.php?dates&delay=1";
-        connMan = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        requestQueue = Volley.newRequestQueue(this);
 
+        //// Request
+        // The endpoint returns JSON array
+        url = "https://webd.savonia.fi/home/ktkoiju/j2me/test_json.php?dates&delay=1";
+        requestQueue = Volley.newRequestQueue(this);
 
         jsonArrayRequest = new JsonArrayRequest
                 (Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
@@ -103,11 +109,15 @@ public class MainActivity extends AppCompatActivity {
                     // TODO checkout Gson. Googles own tool.
                     @Override
                     public void onResponse(JSONArray response) {
+                        // Clear the list before new values are fetched.
+                        arrayList.clear();
 
+                        // Loop through the array and get a substring from the pvm attribute that
+                        // contains only the time part of the timestamp.
                         for (Integer i = 0; i < response.length(); i++) {
                             try {
                                 JSONObject row = response.getJSONObject(i);
-                                arrayAdapter.add(row.getString("pvm"));
+                                arrayAdapter.add(row.getString("pvm").substring(11));
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
@@ -119,29 +129,24 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), "Query failed...\n\r" + error.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Query failed...", Toast.LENGTH_LONG).show();
 
                     }
                 });
-
-/*
-        stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // Display the first 500 characters of the response string.
-                        arrayList.add(response);
-                        arrayAdapter.notifyDataSetChanged();
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), "Query failed...\n\r" + error.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });*/
     }
 
     private void addGetRequestToQueue() {
+        // IF there is no internet connection. Prompt user and don't add query to queue.
+        if (!this.checkInternetConnection()) {
+            Toast.makeText(getApplicationContext(), "Internet connection not available!", Toast.LENGTH_LONG).show();
+            return;
+        }
         requestQueue.add(jsonArrayRequest);
+    }
+
+    private boolean checkInternetConnection() {
+        // Return true IF there is a active network with internet connection.
+        NetworkInfo network = connMan.getActiveNetworkInfo();
+        return network != null && network.isConnectedOrConnecting();
     }
 }
