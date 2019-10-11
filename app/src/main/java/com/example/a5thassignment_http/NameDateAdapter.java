@@ -30,10 +30,11 @@ public class NameDateAdapter extends ArrayAdapter {
 
         // Get the layout components
         TextView datetimeText = convertView.findViewById(R.id.text_date);
+        TextView nameText = convertView.findViewById(R.id.text_name);
 
         // Set view text to Date string
         datetimeText.setText(rowItem.getDateString());
-
+        nameText.setText(rowItem.getNameString());
 
         return convertView;
     }

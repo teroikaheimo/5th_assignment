@@ -22,6 +22,10 @@ public class NameDate {
     }
 
     public String getDateString() {
-        return timeStamp.toString("dd-MM-YYYY");
+        return timeStamp.toString("dd.MM.YYYY");
+    }
+
+    public String getNameString() {
+        return name;
     }
 }
